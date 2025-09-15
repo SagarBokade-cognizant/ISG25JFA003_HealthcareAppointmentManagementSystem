@@ -1,5 +1,6 @@
-package com.cognizant.hams.entity;
+package com.cognizant.hams.dto;
 
+import com.cognizant.hams.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -7,25 +8,16 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "patients")
 @Data
-public class Patient {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long patientId;
-
-    @OneToOne
-    @JoinColumn(name = "userId")
-    private User user;
-
+@AllArgsConstructor
+@NoArgsConstructor
+public class PatientCreatedDTO {
     @NotBlank(message = "Name is required")
     private String name;
 
@@ -42,18 +34,10 @@ public class Patient {
     private String bloodGroup;
 
     @Email
-    @NotBlank
+    @NotBlank(message = "Email is required")
     @Column(unique = true)
     private String email;
 
-//    private String status;
-
     @NotBlank(message = "Address is required")
     private String address;
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 }

@@ -1,4 +1,4 @@
 package com.cognizant.hams.dto;
 
-public class DoctorDTO {
+public class AvailabilityDTO {
 }
