@@ -22,9 +22,9 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long patientId;
 
-    @OneToOne
-    @JoinColumn(name = "userId")
-    private User user;
+//    @OneToOne
+//    @JoinColumn(name = "userId")
+//    private User user;
 
     @NotBlank(message = "Name is required")
     private String name;

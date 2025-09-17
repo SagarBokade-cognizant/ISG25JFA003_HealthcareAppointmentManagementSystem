@@ -1,25 +1,24 @@
-package com.cognizant.hams.service;
+package com.cognizant.hams.service.impl;
 
 import com.cognizant.hams.dto.DoctorResponseDTO;
 import com.cognizant.hams.dto.PatientCreatedDTO;
 import com.cognizant.hams.dto.PatientResponseDTO;
 import com.cognizant.hams.dto.PatientUpdateDTO;
-import com.cognizant.hams.entity.Doctor;
 import com.cognizant.hams.entity.Patient;
 import com.cognizant.hams.exception.APIException;
 import com.cognizant.hams.exception.ResourceNotFoundException;
-import com.cognizant.hams.repository.DoctorRepository;
 import com.cognizant.hams.repository.PatientRepository;
+import com.cognizant.hams.service.DoctorService;
+import com.cognizant.hams.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class PatientServiceImpl implements PatientService{
+public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
     private final DoctorService doctorService;

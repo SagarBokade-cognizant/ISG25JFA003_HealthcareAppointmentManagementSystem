@@ -1,4 +1,4 @@
-package com.cognizant.hams.service;
+package com.cognizant.hams.service.impl;
 
 import com.cognizant.hams.dto.DoctorCreateDTO;
 import com.cognizant.hams.dto.DoctorResponseDTO;
@@ -7,6 +7,7 @@ import com.cognizant.hams.entity.Doctor;
 import com.cognizant.hams.exception.APIException;
 import com.cognizant.hams.exception.ResourceNotFoundException;
 import com.cognizant.hams.repository.DoctorRepository;
+import com.cognizant.hams.service.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -130,7 +131,4 @@ public class DoctorServiceImpl implements DoctorService {
                 .map(doctor -> modelMapper.map(doctor, DoctorResponseDTO.class))
                 .collect(Collectors.toList());
     }
-
-
-
 }

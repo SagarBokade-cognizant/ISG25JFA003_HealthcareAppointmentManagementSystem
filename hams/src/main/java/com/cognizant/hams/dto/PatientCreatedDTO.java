@@ -1,6 +1,5 @@
 package com.cognizant.hams.dto;
 
-import com.cognizant.hams.entity.User;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;

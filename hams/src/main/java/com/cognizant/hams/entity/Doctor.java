@@ -14,9 +14,9 @@ public class Doctor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long doctorId;
 
-    @OneToOne
-    @JoinColumn(name = "userId")
-    private User user;
+//    @OneToOne
+//    @JoinColumn(name = "doctor_id")
+//    private User user;
 
     @NotBlank(message = "Doctor name is required")
     @Size(min = 3, max = 25, message = "Name must be between 3 and 25 characters")
