@@ -6,7 +6,6 @@ import com.cognizant.hams.dto.Response.DoctorAndAvailabilityResponseDTO;
 import com.cognizant.hams.dto.Response.DoctorAvailabilityResponseDTO;
 import com.cognizant.hams.dto.Request.DoctorDTO;
 import com.cognizant.hams.dto.Response.DoctorResponseDTO;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -24,7 +23,7 @@ public interface DoctorService {
     List<DoctorResponseDTO> searchDoctorsBySpecialization(String specialization);
     List<DoctorResponseDTO> searchDoctorsByName(String name);
 
-//
+    //
 //    // Availability Management
     DoctorAvailabilityResponseDTO addAvailability(Long doctorId, DoctorAvailabilityDTO slotDto);
     List<DoctorAvailabilityResponseDTO> getAvailability(Long doctorId);
@@ -34,9 +33,5 @@ public interface DoctorService {
 
     List<DoctorAndAvailabilityResponseDTO> searchDoctorByName(String doctorName);
 
-    List<AppointmentResponseDTO> getAppointmentByAppointmentId(Long appointmentId);
-
-    AppointmentResponseDTO confirmAppointment(Long doctorId, Long appointmentId);
-
-    AppointmentResponseDTO rejectAppointment(Long doctorId, Long appointmentId, String reason);
+//    List<AppointmentResponseDTO> getAppointmentByAppointmentId(Long appointmentId);
 }

@@ -1,14 +1,14 @@
 package com.cognizant.hams.service;
 
+import com.cognizant.hams.dto.Response.NotificationResponseDTO;
 import com.cognizant.hams.entity.Appointment;
-import com.cognizant.hams.entity.Notification;
 
 import java.util.List;
 
 public interface NotificationService {
     void notifyDoctorOnAppointmentRequest(Appointment appointment);
     void notifyPatientOnAppointmentDecision(Appointment appointment, boolean confirmed, String reason);
-    List<Notification> getNotificationForDoctor(Long doctorId);
-    List<Notification> getNotificationForPatient(Long patientId);
+    List<NotificationResponseDTO> getNotificationForDoctor(Long doctorId);
+    List<NotificationResponseDTO> getNotificationForPatient(Long patientId);
     void markAsRead(Long notificationId);
 }

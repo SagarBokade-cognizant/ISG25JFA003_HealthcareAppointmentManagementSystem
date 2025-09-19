@@ -1,7 +1,7 @@
-package com.cognizant.hams.service;
+package com.cognizant.hams.service.Impl;
 
-import com.cognizant.hams.dto.*;
-import com.cognizant.hams.dto.Response.DoctorResponseDTO;
+import com.cognizant.hams.dto.AppointmentDTO;
+import com.cognizant.hams.dto.AppointmentResponseDTO;
 import com.cognizant.hams.entity.Appointment;
 import com.cognizant.hams.entity.AppointmentStatus;
 import com.cognizant.hams.entity.Doctor;
@@ -11,6 +11,9 @@ import com.cognizant.hams.exception.ResourceNotFoundException;
 import com.cognizant.hams.repository.AppointmentRepository;
 import com.cognizant.hams.repository.DoctorRepository;
 import com.cognizant.hams.repository.PatientRepository;
+import com.cognizant.hams.service.AppointmentService;
+import com.cognizant.hams.service.NotificationService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -18,92 +21,57 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-@Service
 @RequiredArgsConstructor
-public class PatientServiceImpl implements PatientService {
+@Service
+public class AppointmentServiceImpl implements AppointmentService {
 
-    private final PatientRepository patientRepository;
-    private final ModelMapper modelMapper;
-    private final DoctorRepository doctorRepository;
     private final AppointmentRepository appointmentRepository;
-    private final DoctorService doctorService;
-
-
-    @Override
-    public PatientResponseDTO createPatient(PatientDTO patientCreateDTO){
-        Patient patient = modelMapper.map(patientCreateDTO, Patient.class);
-        if(patientRepository.existsByEmailAndContactNumber(patient.getEmail(), patient.getContactNumber())){
-            throw new APIException("Person with email " + patient.getEmail() + " and contact number " + patient.getContactNumber() + "already exists");
-        }
-        Patient savedPatient = patientRepository.save(patient);
-        return modelMapper.map(patient, PatientResponseDTO.class);
-    }
-
+    private final NotificationService notificationService;
+    private final ModelMapper modelMapper;
+    private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
 
     @Override
-    public PatientResponseDTO getPatientById(Long patientId){
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(()->new ResourceNotFoundException("Patient", "patientId", patientId));
-        return modelMapper.map(patient, PatientResponseDTO.class);
-    }
-
-    @Override
-    public PatientResponseDTO updatePatient(Long patientId, PatientDTO patientUpdateDTO) {
-        Patient existingPatient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient", "patientId", patientId));
-        if(patientUpdateDTO.getContactNumber() != null){
-            existingPatient.setContactNumber(patientUpdateDTO.getContactNumber());
+    @Transactional
+    public AppointmentResponseDTO rejectAppointment(Long doctorId, Long appointmentId, String reason) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
+        if(!appointment.getDoctor().getDoctorId().equals(doctorId)){
+            throw new APIException("Doctor is not authorized to update this appointment");
         }
-        if(patientUpdateDTO.getEmail() != null){
-            existingPatient.setEmail(patientUpdateDTO.getEmail());
-        }
-        if(patientUpdateDTO.getAddress() != null){
-            existingPatient.setAddress(patientUpdateDTO.getAddress());
-        }
-        if(patientUpdateDTO.getGender() != null){
-            existingPatient.setGender(patientUpdateDTO.getGender());
-        }
-        if(patientUpdateDTO.getName() != null){
-            existingPatient.setName(patientUpdateDTO.getName());
-        }
-        if(patientUpdateDTO.getBloodGroup() != null){
-            existingPatient.setBloodGroup(patientUpdateDTO.getBloodGroup());
-        }
-        if(patientUpdateDTO.getDateOfBirth() != null){
-            existingPatient.setDateOfBirth(patientUpdateDTO.getDateOfBirth());
-        }
-        return modelMapper.map(existingPatient, PatientResponseDTO.class);
+        appointment.setStatus(AppointmentStatus.REJECTED);
+        Appointment saved = appointmentRepository.save(appointment);
+        notificationService.notifyPatientOnAppointmentDecision(saved, false, reason);
+        return modelMapper.map(saved, AppointmentResponseDTO.class);
     }
 
     @Override
-    public PatientResponseDTO deletePatient(Long patientId){
-        Patient deletePatient = patientRepository.findById(patientId)
-                .orElseThrow(()-> new ResourceNotFoundException("Patient", "patientID", patientId));
-        patientRepository.delete(deletePatient);
-        return modelMapper.map(deletePatient, PatientResponseDTO.class);
+    @Transactional
+    public AppointmentResponseDTO confirmAppointment(Long doctorId, Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
+        if(!appointment.getDoctor().getDoctorId().equals(doctorId)){
+            throw new APIException("Doctor is not authorized to update this appointment");
+        }
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        Appointment saved = appointmentRepository.save(appointment);
+        notificationService.notifyPatientOnAppointmentDecision(saved, true, null);
+        return modelMapper.map(saved, AppointmentResponseDTO.class);
     }
 
     @Override
-    public List<DoctorResponseDTO> getAllDoctors(){
-        return doctorService.getAllDoctor();
+    public List<AppointmentResponseDTO> getAppointmentsForPatient(Long patientId) {
+
+        if (!patientRepository.existsById(patientId)) {
+            throw new ResourceNotFoundException("Patient", "Id", patientId);
+        }
+
+        List<Appointment> appointments = appointmentRepository.findByPatient_PatientId(patientId);
+
+        return appointments.stream()
+                .map(appointment -> modelMapper.map(appointment, AppointmentResponseDTO.class))
+                .collect(Collectors.toList());
     }
-
-//    @Override
-//    public List<DoctorResponseDTO> searchDoctorsByNameAndSpecialization(String name, String specialization) {
-//        return doctorService.searchDoctorsByNameAndSpecialization(name, specialization);
-//    }
-
-    @Override
-    public List<DoctorResponseDTO> searchDoctorByName(String name) {
-        return doctorService.searchDoctorsByName(name);
-    }
-
-    @Override
-    public List<DoctorResponseDTO> searchDoctorBySpecialization(String specialization) {
-        return doctorService.searchDoctorsBySpecialization(specialization);
-    }
-
 
     @Override
     public AppointmentResponseDTO bookAppointment(Long patientId, AppointmentDTO appointmentDTO) {
@@ -121,9 +89,12 @@ public class PatientServiceImpl implements PatientService {
         appointment.setStartTime(appointmentDTO.getStartTime()); // Updated
         appointment.setEndTime(appointmentDTO.getEndTime());     // Updated
         appointment.setReason(appointmentDTO.getReason());
+//        appointment.setStatus(AppointmentStatus.SCHEDULED);
         appointment.setStatus(AppointmentStatus.PENDING);
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        notificationService.notifyDoctorOnAppointmentRequest(savedAppointment);
 
         return modelMapper.map(savedAppointment, AppointmentResponseDTO.class);
     }
@@ -182,22 +153,4 @@ public class PatientServiceImpl implements PatientService {
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "Id", appointmentId));
         return modelMapper.map(appointment, AppointmentResponseDTO.class);
     }
-
-    @Override
-    public List<AppointmentResponseDTO> getAppointmentsForPatient(Long patientId) {
-
-        if (!patientRepository.existsById(patientId)) {
-            throw new ResourceNotFoundException("Patient", "Id", patientId);
-        }
-
-        List<Appointment> appointments = appointmentRepository.findByPatient_PatientId(patientId);
-
-        return appointments.stream()
-                .map(appointment -> modelMapper.map(appointment, AppointmentResponseDTO.class))
-                .collect(Collectors.toList());
-    }
 }
-
-
-
-
