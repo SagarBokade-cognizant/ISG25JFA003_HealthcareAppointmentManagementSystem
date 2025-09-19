@@ -1,4 +1,68 @@
 package com.cognizant.hams.service;
 
-public interface AuthService {
+import com.cognizant.hams.entity.Role;
+import com.cognizant.hams.entity.User;
+import com.cognizant.hams.exception.InvalidCredentialsException;
+import com.cognizant.hams.exception.UserAlreadyExistsException;
+import com.cognizant.hams.repository.RoleRepository;
+import com.cognizant.hams.repository.UserRepository;
+import com.cognizant.hams.security.JwtTokenUtil;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class AuthService {
+
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthService(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, JwtTokenUtil jwtTokenUtil, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.jwtTokenUtil = jwtTokenUtil;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public String createAuthenticationToken(String username, String password) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        } catch (DisabledException e) {
+            throw new InvalidCredentialsException("USER_DISABLED");
+        } catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException("INVALID_CREDENTIALS");
+        }
+
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        return jwtTokenUtil.generateToken(userDetails);
+    }
+
+    public User registerNewUser(User newUser, String roleName) {
+        Optional<User> existingUser = userRepository.findByUsername(newUser.getUsername());
+        if (existingUser.isPresent()) {
+            throw new UserAlreadyExistsException("User with this username already exists.");
+        }
+
+        // Find the Role by its name instead of its ID
+        Role role = roleRepository.findByName(roleName.toUpperCase())
+                .orElseThrow(() -> new RuntimeException("Role '" + roleName + "' not found."));
+
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        newUser.setRole(role);
+
+        return userRepository.save(newUser);
+    }
 }
