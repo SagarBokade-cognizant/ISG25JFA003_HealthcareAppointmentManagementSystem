@@ -9,9 +9,12 @@ import java.time.LocalDateTime;
 @Table(name = "bills")
 @Data
 public class Bill {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long billId;
 
+    //    Relation mapping --------------
     @OneToOne
     @JoinColumn(name = "appointmentId")
     private Appointment appointment;
@@ -20,10 +23,20 @@ public class Bill {
     @JoinColumn(name = "patientId")
     private Patient patient;
 
-    private BigDecimal subtotal;
-    private BigDecimal tax;
-    private BigDecimal discount;
-    private BigDecimal total;
+    // variables ----------
+    @Column(name = "Method", length = 50)
+    private String paymentMethod;
+    @Column(name = "payment_status")
     private String paymentStatus;
-    private LocalDateTime dateCreated;
+    @Column(name = "TransactionID", length = 100)
+    private String transactionId;
+
+
+    @Column(name = "Amount", precision = 10, scale = 2)
+    private BigDecimal amount;
+    @Column(name = "Timestamp")
+    private LocalDateTime timestamp;
+    @Column(name = "total")
+    private BigDecimal total;
+
 }

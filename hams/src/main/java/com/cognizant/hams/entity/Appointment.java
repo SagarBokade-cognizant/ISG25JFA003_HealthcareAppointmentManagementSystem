@@ -19,6 +19,8 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long appointmentId;
 
+    // Relationship Mapping ---------
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
@@ -27,6 +29,11 @@ public class Appointment {
     @JoinColumn(name = "doctor_id" , nullable = false)
     private Doctor doctor;
 
+    @OneToOne(mappedBy = "appointment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Bill bill;
+
+
+    // Variables -------------
     @Column(name = "appointment_date", nullable = false)
     private LocalDate appointmentDate;
 

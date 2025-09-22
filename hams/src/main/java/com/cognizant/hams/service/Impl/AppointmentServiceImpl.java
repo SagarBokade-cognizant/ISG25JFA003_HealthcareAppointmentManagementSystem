@@ -2,10 +2,7 @@ package com.cognizant.hams.service.Impl;
 
 import com.cognizant.hams.dto.AppointmentDTO;
 import com.cognizant.hams.dto.AppointmentResponseDTO;
-import com.cognizant.hams.entity.Appointment;
-import com.cognizant.hams.entity.AppointmentStatus;
-import com.cognizant.hams.entity.Doctor;
-import com.cognizant.hams.entity.Patient;
+import com.cognizant.hams.entity.*;
 import com.cognizant.hams.exception.APIException;
 import com.cognizant.hams.exception.ResourceNotFoundException;
 import com.cognizant.hams.repository.AppointmentRepository;
@@ -18,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,11 +85,21 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
         appointment.setAppointmentDate(appointmentDTO.getAppointmentDate());
-        appointment.setStartTime(appointmentDTO.getStartTime()); // Updated
-        appointment.setEndTime(appointmentDTO.getEndTime());     // Updated
+        appointment.setStartTime(appointmentDTO.getStartTime());
+        appointment.setEndTime(appointmentDTO.getEndTime());
         appointment.setReason(appointmentDTO.getReason());
-//        appointment.setStatus(AppointmentStatus.SCHEDULED);
         appointment.setStatus(AppointmentStatus.PENDING);
+
+        // Create and link a new Bill object 💰
+        Bill bill = new Bill();
+        // You need to set the total amount for the bill here.
+        // This amount should come from your business logic (e.g., a default doctor fee, or calculation based on services)
+        bill.setTotal(new BigDecimal("1500.00")); // **Example amount, replace with your logic**
+        bill.setPaymentStatus("Unpaid");
+        bill.setTimestamp(LocalDateTime.now());
+        // Link the entities
+        appointment.setBill(bill); // Set the bill on the appointment
+        bill.setAppointment(appointment); // Set the appointment on the bill
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
