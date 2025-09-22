@@ -3,6 +3,8 @@ package com.cognizant.hams.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -16,8 +18,10 @@ public class User {
     @JoinColumn(name = "roleId")
     private Role role;
 
-    public String getPatientId() {
-
-        return "";
+    @PrePersist
+    public void generateId() {
+        if (this.userId == null) {
+            this.userId = UUID.randomUUID().toString();
+        }
     }
 }

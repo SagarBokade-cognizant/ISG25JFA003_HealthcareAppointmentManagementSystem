@@ -45,9 +45,6 @@ public class Doctor {
     @Size(max = 255, message = "Address cannot exceed 255 characters")
     private String clinicAddress;
 
-//    @NotBlank(message = "Available days must be specified")
-//    @Size(max = 50, message = "Available days text cannot exceed 50 characters")
-//    private String availableDays;
 
 }
 

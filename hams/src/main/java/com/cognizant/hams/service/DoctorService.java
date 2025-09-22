@@ -6,6 +6,7 @@ import com.cognizant.hams.dto.Response.DoctorAndAvailabilityResponseDTO;
 import com.cognizant.hams.dto.Response.DoctorAvailabilityResponseDTO;
 import com.cognizant.hams.dto.Request.DoctorDTO;
 import com.cognizant.hams.dto.Response.DoctorResponseDTO;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -33,5 +34,5 @@ public interface DoctorService {
 
     List<DoctorAndAvailabilityResponseDTO> searchDoctorByName(String doctorName);
 
-//    List<AppointmentResponseDTO> getAppointmentByAppointmentId(Long appointmentId);
+
 }

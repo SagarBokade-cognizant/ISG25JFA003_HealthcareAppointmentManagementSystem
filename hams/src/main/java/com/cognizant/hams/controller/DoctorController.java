@@ -98,4 +98,5 @@ public class DoctorController {
         List<DoctorAndAvailabilityResponseDTO> doctorAndAvailabilityResponseDTOList = doctorService.searchDoctorByName(doctorName);
         return new ResponseEntity<>(doctorAndAvailabilityResponseDTOList, HttpStatus.OK);
     }
+
 }

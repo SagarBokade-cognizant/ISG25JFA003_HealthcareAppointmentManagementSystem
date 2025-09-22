@@ -223,9 +223,6 @@ public class DoctorServiceImpl implements DoctorService {
         return doctorRepository.findByDoctorNameAndAvailability(doctorName);
     }
 
-//    @Override
-//    public List<AppointmentResponseDTO> getAppointmentByAppointmentId(Long appointmentId){
-//        return doctorRepository.findByAppointmentByAppointmentId(appointmentId);
-//    }
+
 
 }
