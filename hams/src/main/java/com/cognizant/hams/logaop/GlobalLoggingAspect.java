@@ -21,7 +21,7 @@ public class GlobalLoggingAspect {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // Pointcut for all application methods
-    @Pointcut("execution(* com.cognizant.hams..*(..))")
+    @Pointcut("execution(* com.cognizant.hams..*(..)) && !within(com.cognizant.hams.security.JwtRequestFilter")
     public void applicationPackagePointcut() {}
 
     // Pointcut for controller methods only

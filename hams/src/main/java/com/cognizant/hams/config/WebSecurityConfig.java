@@ -54,11 +54,12 @@ public class WebSecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+//                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/**").permitAll()
                         // Example of role-based authorization:
                         // .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // .requestMatchers("/api/patients/**").hasAnyRole("PATIENT", "ADMIN")
-                        .anyRequest().authenticated()
+//                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
