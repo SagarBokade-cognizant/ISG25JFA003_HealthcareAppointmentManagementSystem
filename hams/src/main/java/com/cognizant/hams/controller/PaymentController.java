@@ -27,7 +27,8 @@ public class PaymentController {
      */
     @PostMapping("/initiate")
     public ResponseEntity<PaymentResponseDTO> initiatePayment(@RequestBody PaymentRequestDTO request) {
-        return new ResponseEntity<>(paymentServiceImpl.initiatePayment(request.getAppointmentId(), request), HttpStatus.CREATED);
+        PaymentResponseDTO initialize = paymentServiceImpl.initiatePayment(request.getAppointmentId(), request);
+        return new ResponseEntity<>(initialize, HttpStatus.CREATED);
     }
 
     /**
