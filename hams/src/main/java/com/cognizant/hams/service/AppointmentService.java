@@ -1,7 +1,7 @@
 package com.cognizant.hams.service;
 
-import com.cognizant.hams.dto.AppointmentDTO;
-import com.cognizant.hams.dto.AppointmentResponseDTO;
+import com.cognizant.hams.dto.Request.AppointmentDTO;
+import com.cognizant.hams.dto.Response.AppointmentResponseDTO;
 
 import java.util.List;
 

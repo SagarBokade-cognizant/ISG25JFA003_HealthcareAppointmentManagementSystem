@@ -1,7 +1,8 @@
 package com.cognizant.hams.repository;
 
-import com.cognizant.hams.dto.AppointmentResponseDTO;
-import com.cognizant.hams.dto.Response.DoctorAndAvailabilityResponseDTO;
+import com.cognizant.hams.dto.Response.AppointmentResponseDTO;
+import com.cognizant.hams.dto.Response.DoctorAvailabilityResponseDTO;
+import com.cognizant.hams.dto.Response.DoctorDetailsResponseDTO;
 import com.cognizant.hams.entity.Doctor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.LinkedTransferQueue;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
@@ -36,14 +36,14 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
             "join doctor_availability a\n" +
             "on d.doctor_id = a.doctor_id\n" +
             "where doctor_name = :doctorName and available=1;", nativeQuery = true)
-    List<DoctorAndAvailabilityResponseDTO> findByAvailableDoctorNameAndAvailability(String doctorName);
+    List<DoctorAvailabilityResponseDTO> findByAvailableDoctorNameAndAvailability(String doctorName);
 
     @Query(value = "select d.doctor_id, d.contact_number, d.doctor_name, d.email, d.clinic_address, d.specialization, d.qualification,\n" +
             "d.year_of_experience, a.start_time, a.end_time, a.available_date, a.available  from doctors d\n" +
             "join doctor_availability a\n" +
             "on d.doctor_id = a.doctor_id\n" +
             "where doctor_name = :doctorName", nativeQuery = true)
-    List<DoctorAndAvailabilityResponseDTO> findByDoctorNameAndAvailability(String doctorName);
+    List<DoctorAvailabilityResponseDTO> findByDoctorNameAndAvailability(String doctorName);
 
     @Query(value = "select a.appointment_id,d_doctor_name from appointments a\n" +
             "join doctors d\n" +

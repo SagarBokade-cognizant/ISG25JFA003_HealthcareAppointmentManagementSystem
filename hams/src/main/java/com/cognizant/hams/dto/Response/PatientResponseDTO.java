@@ -1,11 +1,10 @@
-package com.cognizant.hams.dto;
+package com.cognizant.hams.dto.Response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Data
 @NoArgsConstructor

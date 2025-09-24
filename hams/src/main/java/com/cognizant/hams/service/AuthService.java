@@ -15,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
@@ -50,13 +49,30 @@ public class AuthService {
         return jwtTokenUtil.generateToken(userDetails);
     }
 
-    public User registerNewUser(User newUser, String roleName) {
+    // This method is for self-registration of a new user with a default role.
+    public User registerNewUser(User newUser) {
         Optional<User> existingUser = userRepository.findByUsername(newUser.getUsername());
         if (existingUser.isPresent()) {
             throw new UserAlreadyExistsException("User with this username already exists.");
         }
 
-        // Find the Role by its name instead of its ID
+        // Find the default "PATIENT" role. This role MUST exist in your database.
+        Role role = roleRepository.findByName("PATIENT")
+                .orElseThrow(() -> new RuntimeException("Default role 'PATIENT' not found. Please seed the database."));
+
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        newUser.setRole(role);
+
+        return userRepository.save(newUser);
+    }
+
+    // This method is for creating privileged users (e.g., Doctors, Admins) by an Admin.
+    public User createPrivilegedUser(User newUser, String roleName) {
+        Optional<User> existingUser = userRepository.findByUsername(newUser.getUsername());
+        if (existingUser.isPresent()) {
+            throw new UserAlreadyExistsException("User with this username already exists.");
+        }
+
         Role role = roleRepository.findByName(roleName.toUpperCase())
                 .orElseThrow(() -> new RuntimeException("Role '" + roleName + "' not found."));
 

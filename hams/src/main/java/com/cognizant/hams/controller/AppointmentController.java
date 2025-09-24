@@ -1,9 +1,7 @@
 package com.cognizant.hams.controller;
 
-import com.cognizant.hams.dto.AppointmentDTO;
-import com.cognizant.hams.dto.AppointmentResponseDTO;
-import com.cognizant.hams.dto.Response.NotificationResponseDTO;
-import com.cognizant.hams.entity.Notification;
+import com.cognizant.hams.dto.Request.AppointmentDTO;
+import com.cognizant.hams.dto.Response.AppointmentResponseDTO;
 import com.cognizant.hams.service.AppointmentService;
 import com.cognizant.hams.service.DoctorService;
 import com.cognizant.hams.service.NotificationService;

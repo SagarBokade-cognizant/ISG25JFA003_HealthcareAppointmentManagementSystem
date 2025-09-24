@@ -1,7 +1,8 @@
 package com.cognizant.hams.service;
 
-import com.cognizant.hams.dto.*;
+import com.cognizant.hams.dto.Request.PatientDTO;
 import com.cognizant.hams.dto.Response.DoctorResponseDTO;
+import com.cognizant.hams.dto.Response.PatientResponseDTO;
 
 import java.util.List;
 

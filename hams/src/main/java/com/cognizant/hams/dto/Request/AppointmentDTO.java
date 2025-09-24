@@ -1,4 +1,4 @@
-package com.cognizant.hams.dto;
+package com.cognizant.hams.dto.Request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;

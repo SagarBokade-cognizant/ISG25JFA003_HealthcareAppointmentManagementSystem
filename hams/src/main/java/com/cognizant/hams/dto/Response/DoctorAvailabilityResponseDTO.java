@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 public class DoctorAvailabilityResponseDTO {
     private Long availabilityId;
-    private Long doctorId;
+    private DoctorDetailsResponseDTO doctor;
     private LocalDate availableDate;
     private LocalTime startTime;
     private LocalTime endTime;

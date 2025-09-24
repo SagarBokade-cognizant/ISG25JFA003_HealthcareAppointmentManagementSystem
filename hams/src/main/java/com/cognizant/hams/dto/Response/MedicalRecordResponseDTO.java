@@ -1,22 +1,23 @@
-package com.cognizant.hams.dto.Request;
+package com.cognizant.hams.dto.Response;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MedicalRecordDTO {
-    @NotNull
-    private Long appointmentId;
-    @NotNull
+
+public class MedicalRecordResponseDTO {
+    private Long recordId;
     private Long patientId;
-    @NotNull
     private Long doctorId;
+    private String patientName;
+    private String doctorName;
     private String reason;
     private String diagnosis;
     private String notes;
+    private LocalDateTime createdAt;
 }

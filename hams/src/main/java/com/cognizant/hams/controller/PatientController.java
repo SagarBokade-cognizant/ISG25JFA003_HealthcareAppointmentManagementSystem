@@ -1,7 +1,7 @@
 package com.cognizant.hams.controller;
 
-import com.cognizant.hams.dto.PatientDTO;
-import com.cognizant.hams.dto.PatientResponseDTO;
+import com.cognizant.hams.dto.Request.PatientDTO;
+import com.cognizant.hams.dto.Response.PatientResponseDTO;
 import com.cognizant.hams.dto.Response.DoctorResponseDTO;
 import com.cognizant.hams.service.NotificationService;
 import com.cognizant.hams.service.Impl.PatientServiceImpl;

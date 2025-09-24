@@ -1,7 +1,8 @@
 package com.cognizant.hams.service.Impl;
 
-import com.cognizant.hams.dto.*;
+import com.cognizant.hams.dto.Request.PatientDTO;
 import com.cognizant.hams.dto.Response.DoctorResponseDTO;
+import com.cognizant.hams.dto.Response.PatientResponseDTO;
 import com.cognizant.hams.entity.Patient;
 import com.cognizant.hams.exception.APIException;
 import com.cognizant.hams.exception.ResourceNotFoundException;

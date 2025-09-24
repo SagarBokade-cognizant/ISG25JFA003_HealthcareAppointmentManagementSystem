@@ -1,4 +1,4 @@
-package com.cognizant.hams.dto;
+package com.cognizant.hams.dto.Request;
 
 import lombok.Data;
 

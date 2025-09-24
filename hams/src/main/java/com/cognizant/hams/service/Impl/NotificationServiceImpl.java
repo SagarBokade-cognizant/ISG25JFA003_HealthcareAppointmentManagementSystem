@@ -21,7 +21,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void notifyDoctorOnAppointmentRequest(Appointment appointment) {
-        System.out.print(appointment);
         Notification notification = new Notification();
         notification.setAppointment(appointment);
         notification.setRecipientType(Notification.RecipientType.DOCTOR);

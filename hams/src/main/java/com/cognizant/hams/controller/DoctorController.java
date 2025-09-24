@@ -1,12 +1,10 @@
 package com.cognizant.hams.controller;
 
-import com.cognizant.hams.dto.AppointmentResponseDTO;
 import com.cognizant.hams.dto.Request.DoctorAvailabilityDTO;
-import com.cognizant.hams.dto.Response.DoctorAndAvailabilityResponseDTO;
+import com.cognizant.hams.dto.Response.DoctorDetailsResponseDTO;
 import com.cognizant.hams.dto.Response.DoctorAvailabilityResponseDTO;
 import com.cognizant.hams.dto.Request.DoctorDTO;
 import com.cognizant.hams.dto.Response.DoctorResponseDTO;
-import com.cognizant.hams.entity.Notification;
 import com.cognizant.hams.service.DoctorService;
 import com.cognizant.hams.service.NotificationService;
 import jakarta.validation.Valid;
@@ -67,36 +65,6 @@ public class DoctorController {
     public ResponseEntity<List<DoctorResponseDTO>> searchDoctorsByName(@RequestParam("name") String name){
         List<DoctorResponseDTO> doctors = doctorService.searchDoctorsByName(name);
         return new ResponseEntity<>(doctors, HttpStatus.OK);
-    }
-
-    @PostMapping("/{doctorId}/availability")
-    public ResponseEntity<DoctorAvailabilityResponseDTO> addAvailability(@PathVariable("doctorId") Long doctorId, @Valid @RequestBody DoctorAvailabilityDTO slotDto) {
-        DoctorAvailabilityResponseDTO savedSlot = doctorService.addAvailability(doctorId, slotDto);
-        return new ResponseEntity<>(savedSlot, HttpStatus.CREATED);
-    }
-
-    @GetMapping("/{doctorId}/availability")
-    public ResponseEntity<List<DoctorAvailabilityResponseDTO>> getAvailability(@PathVariable("doctorId") Long doctorId) {
-        List<DoctorAvailabilityResponseDTO> availability = doctorService.getAvailability(doctorId);
-        return new ResponseEntity<>(availability, HttpStatus.OK);
-    }
-
-    @PutMapping("/{doctorId}/availability/{availabilityId}")
-    public ResponseEntity<DoctorAvailabilityResponseDTO> updateAvailabilitySlot(@PathVariable("doctorId") Long doctorId, @PathVariable("availabilityId") Long availabilityId, @RequestBody  DoctorAvailabilityDTO doctorAvailabilityDTO ) {
-        DoctorAvailabilityResponseDTO doctorResponseDTO = doctorService.updateAvailabilitySlot(doctorId, availabilityId,doctorAvailabilityDTO);
-        return new ResponseEntity<>(doctorResponseDTO,HttpStatus.OK);
-    }
-
-    @GetMapping("/doctor-availability")
-    public ResponseEntity<List<DoctorAndAvailabilityResponseDTO>> getAvailableDoctor(@RequestParam("name") String doctorName){
-        List<DoctorAndAvailabilityResponseDTO> doctorAndAvailabilityResponseDTOList = doctorService.getAvailableDoctor(doctorName);
-        return new ResponseEntity<>(doctorAndAvailabilityResponseDTOList, HttpStatus.OK);
-    }
-
-    @GetMapping("/searchDoctor")
-    public ResponseEntity<List<DoctorAndAvailabilityResponseDTO>> searchDoctorByName(@RequestParam("name") String doctorName){
-        List<DoctorAndAvailabilityResponseDTO> doctorAndAvailabilityResponseDTOList = doctorService.searchDoctorByName(doctorName);
-        return new ResponseEntity<>(doctorAndAvailabilityResponseDTOList, HttpStatus.OK);
     }
 
 }

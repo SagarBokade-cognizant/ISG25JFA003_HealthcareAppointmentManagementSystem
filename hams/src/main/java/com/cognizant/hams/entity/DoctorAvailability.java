@@ -13,7 +13,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "doctorAvailability")
+@Table(name = "doctor_availability", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"doctor_id", "available_date", "start_time"})
+})
 @Data
 @NoArgsConstructor
 public class DoctorAvailability {
@@ -26,14 +28,17 @@ public class DoctorAvailability {
     private Doctor doctor;
 
     @NotNull(message = "Available date must be specified")
+    @Column(name = "available_date", nullable = false)
     private LocalDate availableDate;
 
     @DateTimeFormat(pattern = "HH:mm")
     @NotNull(message = "Start time is required")
+    @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
 
     @DateTimeFormat(pattern = "HH:mm")
     @NotNull(message = "End time is required")
+    @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
 

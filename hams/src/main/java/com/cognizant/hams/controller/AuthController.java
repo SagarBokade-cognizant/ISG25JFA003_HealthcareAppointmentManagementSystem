@@ -32,7 +32,8 @@ public class AuthController {
         newUser.setUsername(registrationRequest.getUsername());
         newUser.setPassword(registrationRequest.getPassword());
 
-        User registeredUser = authService.registerNewUser(newUser, registrationRequest.getRoleName()); // Pass roleName here
+        // This method now handles default role assignment internally.
+        User registeredUser = authService.registerNewUser(newUser);
         return ResponseEntity.ok("User registered successfully with ID: " + registeredUser.getUserId());
     }
 }
