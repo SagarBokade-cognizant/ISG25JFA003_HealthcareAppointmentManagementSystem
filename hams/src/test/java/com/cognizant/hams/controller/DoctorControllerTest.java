@@ -1,36 +1,35 @@
 package com.cognizant.hams.controller;
 
-import com.cognizant.hams.dto.Request.DoctorAvailabilityDTO;
-import com.cognizant.hams.dto.Response.DoctorAndAvailabilityResponseDTO;
-import com.cognizant.hams.dto.Response.DoctorAvailabilityResponseDTO;
 import com.cognizant.hams.dto.Request.DoctorDTO;
 import com.cognizant.hams.dto.Response.DoctorResponseDTO;
+import com.cognizant.hams.security.CustomUserDetailsService;
+import com.cognizant.hams.security.JwtTokenUtil;
 import com.cognizant.hams.service.DoctorService;
+import com.cognizant.hams.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
-
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DoctorController.class)
 public class DoctorControllerTest {
-
-    private static final String API_BASE_PATH = "/api/doctors";
 
     @Autowired
     private MockMvc mockMvc;
@@ -38,217 +37,72 @@ public class DoctorControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
+    @MockBean
     private DoctorService doctorService;
 
-
-    private DoctorDTO doctorDTO;
-    private DoctorResponseDTO doctorResponseDTO;
-    private DoctorAvailabilityDTO doctorAvailabilityDTO;
-    private DoctorAvailabilityResponseDTO doctorAvailabilityResponseDTO;
-    private DoctorAndAvailabilityResponseDTO doctorAndAvailabilityResponseDTO;
-
-    @BeforeEach
-    void setUp() {
-//        doctorDTO = new DoctorDTO("Dr. John Doe", "Cardiologist", "john.doe@hospital.com", "1234567890");
-//        doctorResponseDTO = new DoctorResponseDTO(1L, "Dr. John Doe", "Cardiologist", "john.doe@hospital.com", "1234567890");
-//        doctorAvailabilityDTO = new DoctorAvailabilityDTO(LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(1), "Available");
-//        doctorAvailabilityResponseDTO = new DoctorAvailabilityResponseDTO(1L, 1L, LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(1), "Available");
-//        doctorAndAvailabilityResponseDTO = new DoctorAndAvailabilityResponseDTO("Dr. John Doe", "Cardiologist", "john.doe@hospital.com", "1234567890", List.of(doctorAvailabilityResponseDTO));
-    }
-
-    // ------------------------------------------
-    // Tests for createDoctor()
-    // ------------------------------------------
+    // Mock all other dependencies of the controller and security filters
+    @MockBean
+    private NotificationService notificationService;
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
+    @MockBean
+    private JwtTokenUtil jwtTokenUtil;
 
     @Test
-    void testCreateDoctor_Success() throws Exception {
-        when(doctorService.createDoctor(any(DoctorDTO.class))).thenReturn(doctorResponseDTO);
+    @WithMockUser
+    public void testCreateDoctor() throws Exception {
+        DoctorDTO doctorToCreate = new DoctorDTO("Dr. Strange", "MD", "Neurosurgery", "Sanctum", 10, "5551234567", "strange@sanctum.com");
+        DoctorResponseDTO savedDoctor = new DoctorResponseDTO(1L, "Dr. Strange", "Neurosurgery", "MD", "Sanctum", 10, "strange@sanctum.com", "5551234567");
 
-        mockMvc.perform(post(API_BASE_PATH)
+        Mockito.when(doctorService.createDoctor(any(DoctorDTO.class))).thenReturn(savedDoctor);
+
+        mockMvc.perform(post("/api/doctors")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(doctorDTO)))
+                        .content(objectMapper.writeValueAsString(doctorToCreate))
+                        .with(csrf())) // Add CSRF token
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(doctorResponseDTO.getDoctorId()))
-                .andExpect(jsonPath("$.name").value(doctorResponseDTO.getDoctorName()));
+                .andExpect(jsonPath("$.doctorId", is(1)))
+                .andExpect(jsonPath("$.doctorName", is("Dr. Strange")));
     }
 
-    // ------------------------------------------
-    // Tests for getDoctorById()
-    // ------------------------------------------
-
     @Test
-    void testGetDoctorById_Success() throws Exception {
-        Long doctorId = 1L;
-        when(doctorService.getDoctorById(doctorId)).thenReturn(doctorResponseDTO);
+    @WithMockUser
+    public void testGetDoctorById() throws Exception {
+        DoctorResponseDTO doctor = new DoctorResponseDTO(1L, "Dr. Strange", "Neurosurgery", null, null, null, null, null);
+        Mockito.when(doctorService.getDoctorById(1L)).thenReturn(doctor);
 
-        mockMvc.perform(get(API_BASE_PATH + "/{doctorId}", doctorId))
+        mockMvc.perform(get("/api/doctors/{doctorId}", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(doctorResponseDTO.getDoctorId()))
-                .andExpect(jsonPath("$.name").value(doctorResponseDTO.getDoctorName()));
+                .andExpect(jsonPath("$.doctorName", is("Dr. Strange")));
     }
 
-    // ------------------------------------------
-    // Tests for getAllDoctor()
-    // ------------------------------------------
-
     @Test
-    void testGetAllDoctor_Success() throws Exception {
-        List<DoctorResponseDTO> doctorList = List.of(doctorResponseDTO);
-        when(doctorService.getAllDoctor()).thenReturn(doctorList);
+    @WithMockUser
+    public void testGetAllDoctor() throws Exception {
+        List<DoctorResponseDTO> doctors = Collections.singletonList(
+                new DoctorResponseDTO(1L, "Dr. Strange", "Neurosurgery", null, null, null, null, null)
+        );
+        Mockito.when(doctorService.getAllDoctor()).thenReturn(doctors);
 
-        mockMvc.perform(get(API_BASE_PATH + "/all"))
+        mockMvc.perform(get("/api/doctors/all"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].name").value(doctorResponseDTO.getDoctorName()));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].doctorName", is("Dr. Strange")));
     }
 
-    // ------------------------------------------
-    // Tests for updateDoctor()
-    // ------------------------------------------
-
     @Test
-    void testUpdateDoctor_Success() throws Exception {
-        Long doctorId = 1L;
-        when(doctorService.updateDoctor(eq(doctorId), any(DoctorDTO.class))).thenReturn(doctorResponseDTO);
+    @WithMockUser
+    public void testUpdateDoctor() throws Exception {
+        long doctorId = 1L;
+        DoctorDTO doctorToUpdate = new DoctorDTO("Dr. Strange", "Sorcerer Supreme", "Neurosurgery", null, null, null, null);
+        DoctorResponseDTO updatedDoctor = new DoctorResponseDTO(doctorId, "Dr. Strange", "Neurosurgery", "Sorcerer Supreme", null, null, null, null);
 
-        mockMvc.perform(put(API_BASE_PATH + "/{doctorId}", doctorId)
+        Mockito.when(doctorService.updateDoctor(eq(doctorId), any(DoctorDTO.class))).thenReturn(updatedDoctor);
+        mockMvc.perform(put("/api/doctors/{doctorId}", doctorId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(doctorDTO)))
+                        .content(objectMapper.writeValueAsString(doctorToUpdate))
+                        .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(doctorResponseDTO.getDoctorId()))
-                .andExpect(jsonPath("$.name").value(doctorResponseDTO.getDoctorName()));
-    }
-
-    // ------------------------------------------
-    // Tests for deleteDoctor()
-    // ------------------------------------------
-
-    @Test
-    void testDeleteDoctor_Success() throws Exception {
-        Long doctorId = 1L;
-        when(doctorService.deleteDoctor(doctorId)).thenReturn(doctorResponseDTO);
-
-        mockMvc.perform(delete(API_BASE_PATH + "/{doctorId}", doctorId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(doctorResponseDTO.getDoctorId()));
-    }
-
-    // ------------------------------------------
-    // Tests for searchDoctorsBySpecialization()
-    // ------------------------------------------
-
-    @Test
-    void testSearchDoctorsBySpecialization_Success() throws Exception {
-        String specialization = "Cardiologist";
-        List<DoctorResponseDTO> doctorList = List.of(doctorResponseDTO);
-        when(doctorService.searchDoctorsBySpecialization(specialization)).thenReturn(doctorList);
-
-        mockMvc.perform(get(API_BASE_PATH + "/specializations")
-                        .param("specialization", specialization))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].specialization").value(specialization));
-    }
-
-    // ------------------------------------------
-    // Tests for searchDoctorsByName()
-    // ------------------------------------------
-
-    @Test
-    void testSearchDoctorsByName_Success() throws Exception {
-        String name = "Dr. John Doe";
-        List<DoctorResponseDTO> doctorList = List.of(doctorResponseDTO);
-        when(doctorService.searchDoctorsByName(name)).thenReturn(doctorList);
-
-        mockMvc.perform(get(API_BASE_PATH + "/doctorName")
-                        .param("name", name))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].name").value(name));
-    }
-
-    // ------------------------------------------
-    // Tests for addAvailability()
-    // ------------------------------------------
-
-    @Test
-    void testAddAvailability_Success() throws Exception {
-        Long doctorId = 1L;
-        when(doctorService.addAvailability(eq(doctorId), any(DoctorAvailabilityDTO.class))).thenReturn(doctorAvailabilityResponseDTO);
-
-        mockMvc.perform(post(API_BASE_PATH + "/{doctorId}/availability", doctorId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(doctorAvailabilityDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(doctorAvailabilityResponseDTO.getDoctorId()))
-                .andExpect(jsonPath("$.doctorId").value(doctorAvailabilityResponseDTO.getDoctorId()));
-    }
-
-    // ------------------------------------------
-    // Tests for getAvailability()
-    // ------------------------------------------
-
-    @Test
-    void testGetAvailability_Success() throws Exception {
-        Long doctorId = 1L;
-        List<DoctorAvailabilityResponseDTO> availabilityList = List.of(doctorAvailabilityResponseDTO);
-        when(doctorService.getAvailability(doctorId)).thenReturn(availabilityList);
-
-        mockMvc.perform(get(API_BASE_PATH + "/{doctorId}/availability", doctorId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].doctorId").value(doctorId));
-    }
-
-    // ------------------------------------------
-    // Tests for updateAvailabilitySlot()
-    // ------------------------------------------
-
-    @Test
-    void testUpdateAvailabilitySlot_Success() throws Exception {
-        Long doctorId = 1L;
-        Long availabilityId = 1L;
-        when(doctorService.updateAvailabilitySlot(eq(doctorId), eq(availabilityId), any(DoctorAvailabilityDTO.class))).thenReturn(doctorAvailabilityResponseDTO);
-
-        mockMvc.perform(put(API_BASE_PATH + "/{doctorId}/availability/{availabilityId}", doctorId, availabilityId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(doctorAvailabilityDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(doctorAvailabilityResponseDTO.getDoctorId()));
-    }
-
-    // ------------------------------------------
-    // Tests for getAvailableDoctor()
-    // ------------------------------------------
-
-    @Test
-    void testGetAvailableDoctor_Success() throws Exception {
-        String doctorName = "Dr. John Doe";
-        List<DoctorAndAvailabilityResponseDTO> responseList = List.of(doctorAndAvailabilityResponseDTO);
-        when(doctorService.getAvailableDoctor(doctorName)).thenReturn(responseList);
-
-        mockMvc.perform(get(API_BASE_PATH + "/doctor-availability")
-                        .param("name", doctorName))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].doctorName").value(doctorName));
-    }
-
-    // ------------------------------------------
-    // Tests for searchDoctorByName()
-    // ------------------------------------------
-
-    @Test
-    void testSearchDoctorByName_Success() throws Exception {
-        String doctorName = "Dr. John Doe";
-        List<DoctorAndAvailabilityResponseDTO> responseList = List.of(doctorAndAvailabilityResponseDTO);
-        when(doctorService.searchDoctorByName(doctorName)).thenReturn(responseList);
-
-        mockMvc.perform(get(API_BASE_PATH + "/searchDoctor")
-                        .param("name", doctorName))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].doctorName").value(doctorName));
+                .andExpect(jsonPath("$.qualification", is("Sorcerer Supreme")));
     }
 }

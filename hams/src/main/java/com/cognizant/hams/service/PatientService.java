@@ -15,10 +15,8 @@ public interface PatientService {
 
     PatientResponseDTO deletePatient(Long patientId);
 
-    //    --- Doctor Search (from patient perspective) ---
     List<DoctorResponseDTO> getAllDoctors();
 
-//    List<DoctorResponseDTO> searchDoctorsByNameAndSpecialization(String name, String specialization);
 
     List<DoctorResponseDTO> searchDoctorByName(String name);
 
@@ -34,5 +32,3 @@ public interface PatientService {
 //    AppointmentResponseDTO updateAppointment(Long appointmentId, AppointmentUpdateDTO appointmentUpdateDTO);
 //    AppointmentResponseDTO cancelAppointment(Long appointmentId);
 
-//    --- Doctor Availability (helper) ---
-//    List<AvailabilityDTO> getDoctorAvailability(Long doctorId);

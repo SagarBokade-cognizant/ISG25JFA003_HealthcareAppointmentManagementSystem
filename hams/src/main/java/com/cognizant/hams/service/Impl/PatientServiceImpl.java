@@ -74,7 +74,10 @@ public class PatientServiceImpl implements PatientService {
         if(patientUpdateDTO.getDateOfBirth() != null){
             existingPatient.setDateOfBirth(patientUpdateDTO.getDateOfBirth());
         }
-        return modelMapper.map(existingPatient, PatientResponseDTO.class);
+        Patient updatedPatient = patientRepository.save(existingPatient);
+
+        return modelMapper.map(updatedPatient, PatientResponseDTO.class);
+
     }
 
     @Override

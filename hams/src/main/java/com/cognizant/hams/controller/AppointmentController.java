@@ -39,9 +39,6 @@ public class AppointmentController {
         return ResponseEntity.ok(appointments);
     }
 
-    /**
-     * Retrieves a single appointment by its unique ID.
-     */
     @GetMapping("/appointments/{appointmentId}")
     public ResponseEntity<AppointmentResponseDTO> getAppointmentById(
             @PathVariable("appointmentId") Long appointmentId) {
@@ -49,9 +46,6 @@ public class AppointmentController {
         return ResponseEntity.ok(appointment);
     }
 
-    /**
-     * Updates an existing appointment's details.
-     */
     @PutMapping("/appointments/{appointmentId}")
     public ResponseEntity<AppointmentResponseDTO> updateAppointment(
             @PathVariable("appointmentId") Long appointmentId,
@@ -60,10 +54,6 @@ public class AppointmentController {
         return ResponseEntity.ok(updatedAppointment);
     }
 
-    /**
-     * Cancels an appointment.
-     * PATCH is used as it's a partial update (changing the status).
-     */
     @PatchMapping("/appointments/{appointmentId}/cancel")
     public ResponseEntity<AppointmentResponseDTO> cancelAppointment(
             @PathVariable("appointmentId") Long appointmentId) {
