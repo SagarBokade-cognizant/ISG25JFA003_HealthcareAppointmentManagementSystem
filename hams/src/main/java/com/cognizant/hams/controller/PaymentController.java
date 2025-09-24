@@ -4,7 +4,7 @@ import com.cognizant.hams.dto.Request.PaymentCallBackDTO;
 import com.cognizant.hams.dto.Request.PaymentRequestDTO;
 import com.cognizant.hams.dto.Response.PaymentResponseDTO;
 import com.cognizant.hams.dto.Response.PaymentStatusDTO;
-import com.cognizant.hams.service.Impl.PaymentService;
+import com.cognizant.hams.service.Impl.PaymentServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final PaymentServiceImpl paymentServiceImpl;
 
     /**
      * Initiates a payment for a specific appointment bill.
@@ -27,7 +27,7 @@ public class PaymentController {
      */
     @PostMapping("/initiate")
     public ResponseEntity<PaymentResponseDTO> initiatePayment(@RequestBody PaymentRequestDTO request) {
-        return new ResponseEntity<>(paymentService.initiatePayment(request.getAppointmentId(), request), HttpStatus.CREATED);
+        return new ResponseEntity<>(paymentServiceImpl.initiatePayment(request.getAppointmentId(), request), HttpStatus.CREATED);
     }
 
     /**
@@ -39,7 +39,7 @@ public class PaymentController {
      */
     @PostMapping("/dummy-callback/{billId}")
     public ResponseEntity<String> dummyCallback(@PathVariable("billId") Long billId, @RequestBody PaymentCallBackDTO callback) {
-        String transactionId = paymentService.processPaymentResponse(billId, callback);
+        String transactionId = paymentServiceImpl.processPaymentResponse(billId, callback);
         return new ResponseEntity<>("Callback processed payment's transaction ID : " + transactionId, HttpStatus.ACCEPTED);
     }
 
@@ -51,7 +51,7 @@ public class PaymentController {
      */
     @GetMapping("/status/appointment/{appointmentId}")
     public ResponseEntity<List<PaymentStatusDTO>> getPaymentStatus(@PathVariable("appointmentId") Long appointmentId) {
-        List<PaymentStatusDTO> list = paymentService.getPaymentStatus(appointmentId);
+        List<PaymentStatusDTO> list = paymentServiceImpl.getPaymentStatus(appointmentId);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 }

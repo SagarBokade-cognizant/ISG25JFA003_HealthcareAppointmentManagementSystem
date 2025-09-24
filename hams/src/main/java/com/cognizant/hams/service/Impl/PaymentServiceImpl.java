@@ -5,7 +5,10 @@ import com.cognizant.hams.dto.Request.PaymentCallBackDTO;
 import com.cognizant.hams.dto.Request.PaymentRequestDTO;
 import com.cognizant.hams.dto.Response.PaymentResponseDTO;
 import com.cognizant.hams.dto.Response.PaymentStatusDTO;
+import com.cognizant.hams.entity.Appointment;
+import com.cognizant.hams.entity.AppointmentStatus;
 import com.cognizant.hams.entity.Bill;
+import com.cognizant.hams.exception.PaymentException;
 import com.cognizant.hams.exception.ResourceNotFoundException;
 import com.cognizant.hams.repository.BillRepository;
 import com.cognizant.hams.repository.AppointmentRepository;
@@ -13,19 +16,23 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class PaymentServiceImpl {
 
     private final BillRepository billRepository;
     private final AppointmentRepository appointmentRepository;
+
     private final ModelMapper modelMapper;
 
     private static final String SUCCESSFUL_STATUS = "Successful";
@@ -41,24 +48,37 @@ public class PaymentService {
     @Transactional
     public PaymentResponseDTO initiatePayment(Long appointmentId, PaymentRequestDTO request) {
         // Find the bill using the correct repository method that returns an Optional.
-        Bill bill = billRepository.findByAppointment_AppointmentId(appointmentId)
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bill", "Appointment ID", appointmentId));
 
+
+        Set<Bill> bills = appointment.getBill();
+
+
+
         // Check for existing payments to prevent double-payment.
-        if (SUCCESSFUL_STATUS.equalsIgnoreCase(bill.getPaymentStatus())) {
-            throw new RuntimeException("Payment for this bill is already successful.");
+        if (bills.stream().anyMatch(b -> b.getPaymentStatus().equalsIgnoreCase(SUCCESSFUL_STATUS))) {
+            throw new PaymentException("Payment for this bill is already successful.");
+        }
+        if (bills.stream().anyMatch(b -> b.getPaymentStatus().equalsIgnoreCase(SUCCESSFUL_STATUS))) {
+            throw new PaymentException("Payment for this bill is Pending.");
         }
 
-        // Update the existing bill record with payment initiation details.
-        bill.setPaymentMethod(request.getPaymentMethod());
+        Bill bill = new Bill();
         bill.setPaymentStatus(PENDING_STATUS);
-        bill.setTransactionId(null);
+        bill.setPaymentMethod(request.getPaymentMethod());
+        bill.setAmount(BigDecimal.valueOf(1500L));
+        bill.setTimestamp(LocalDateTime.now());
+        bill.setAppointment(appointment);
 
         // Save the updated bill record.
         Bill savedBill = billRepository.save(bill);
 
+        bill.setBillId(savedBill.getBillId());
+
+
         // Map and return the response.
-        return modelMapper.map(savedBill, PaymentResponseDTO.class);
+        return modelMapper.map(bill, PaymentResponseDTO.class);
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -76,27 +96,25 @@ public class PaymentService {
 
         String transactionId = "txn_" + UUID.randomUUID();
 
-        try {
-            // 2. Validate the payment using the constants class.
-            PaymentConstants.validatePayment(
-                    callback.getType(),
-                    callback.getIdentifier(),
-                    callback.getPin(),
-                    callback.getAmount().floatValue()
-            );
+        if(PaymentConstants.validatePayment(
+                callback.getType(),
+                callback.getIdentifier(),
+                callback.getPin(),
+                callback.getAmount().floatValue())) {
 
-            // 3. Update the bill with successful status.
             bill.setPaymentStatus(SUCCESSFUL_STATUS);
             bill.setTransactionId(transactionId);
-        } catch (Exception e) {
+
+        }
+        else{
             // 4. Handle failed payment and set the status accordingly.
             bill.setPaymentStatus(FAILED_STATUS);
             bill.setTransactionId(transactionId);
-            throw e;
-        } finally {
-            // 5. Save the updated bill record.
-            billRepository.save(bill);
+
         }
+        // 5. Save the updated bill record.
+        Bill savedBill = billRepository.save(bill);
+
         return transactionId;
     }
 
@@ -109,7 +127,7 @@ public class PaymentService {
      * @return A list of DTOs containing payment status and transaction ID for each bill.
      */
     public List<PaymentStatusDTO> getPaymentStatus(Long appointmentId) {
-        Optional<Bill> billList = billRepository.findAllByAppointment_AppointmentId(appointmentId);
+        List<Bill> billList = billRepository.findAllByAppointment_AppointmentId(appointmentId);
 
         return billList.stream()
                 .map(bill -> new PaymentStatusDTO(bill.getAppointment().getAppointmentId(), bill.getPaymentStatus(), bill.getTransactionId()))

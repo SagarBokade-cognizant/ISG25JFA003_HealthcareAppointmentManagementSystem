@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PaymentResponseDTO {
 
-    private Integer paymentId;
+    private Integer billId;
+
     private String method;
 
     private BigDecimal amount;
@@ -19,9 +20,5 @@ public class PaymentResponseDTO {
 
     private LocalDateTime timestamp;
 
-    private String paymentType;
-
     private String paymentStatus;
-
-
 }

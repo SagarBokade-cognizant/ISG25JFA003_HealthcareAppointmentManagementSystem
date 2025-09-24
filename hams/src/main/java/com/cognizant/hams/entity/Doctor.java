@@ -1,13 +1,19 @@
 package com.cognizant.hams.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
 
 @Entity
 @Table(name = "doctors")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class Doctor {
     @Id
@@ -17,6 +23,10 @@ public class Doctor {
     @OneToOne
     @JoinColumn(name = "userId")
     private User user;
+
+    @OneToMany(mappedBy = "doctor")
+    @JsonManagedReference
+    private List<Appointment> appointments;
 
     @NotBlank(message = "Doctor name is required")
     @Size(min = 3, max = 25, message = "Name must be between 3 and 25 characters")

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -73,6 +74,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public AppointmentResponseDTO bookAppointment(Long patientId, AppointmentDTO appointmentDTO) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient", "Id", patientId));
@@ -91,18 +93,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(AppointmentStatus.PENDING);
 
         // Create and link a new Bill object 💰
-        Bill bill = new Bill();
-        // You need to set the total amount for the bill here.
-        // This amount should come from your business logic (e.g., a default doctor fee, or calculation based on services)
-        bill.setTotal(new BigDecimal("1500.00")); // **Example amount, replace with your logic**
-        bill.setPaymentStatus("Unpaid");
-        bill.setTimestamp(LocalDateTime.now());
-        // Link the entities
-        appointment.setBill(bill); // Set the bill on the appointment
-        bill.setAppointment(appointment); // Set the appointment on the bill
+//        Bill bill = new Bill();
+//        // You need to set the total amount for the bill here.
+//        // This amount should come from your business logic (e.g., a default doctor fee, or calculation based on services)
+//        bill.setTotal(new BigDecimal("1500.00"));
+//        bill.setPaymentStatus("Unpaid");
+//        bill.setTimestamp(LocalDateTime.now());
+//        // Link the entities
+//        appointment.setBill((bill); // Set the bill on the appointment
+//        bill.setAppointment(appointment); // Set the appointment on the bill
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
-
+        System.out.println(savedAppointment);
         notificationService.notifyDoctorOnAppointmentRequest(savedAppointment);
 
         return modelMapper.map(savedAppointment, AppointmentResponseDTO.class);

@@ -43,7 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setTitle(confirmed ? "Appointment confirmed" : "Appointment rejected");
         String message = confirmed ? "Your appointment with Dr. " + appointment.getDoctor()
                 .getDoctorName() + " on " + appointment.getAppointmentDate() + " is confirmed." :
-                "Your appointment with Dr. " + appointment.getDoctor().getDoctorName() + " on " +
+                "Your appointment with " + appointment.getDoctor().getDoctorName() + " on " +
                         appointment.getAppointmentDate() + " was rejected. Reason: " +
                         (reason == null ? "N/A" : reason);
         notification.setMessage(message);

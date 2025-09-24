@@ -81,8 +81,7 @@ public final class PaymentConstants {
         }
 
         // This line is only reached if no identifier was found after checking all loops
-        logger.error("Payment identifier not found.");
-        return false;
+        throw new RuntimeException("Payment identifier not found.");
     }
 
     private static void validatePinAndBalance(int storedPin, int providedPin, float balance, float amount, String type) {
