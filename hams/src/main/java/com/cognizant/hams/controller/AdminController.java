@@ -6,7 +6,7 @@ import com.cognizant.hams.dto.response.DoctorResponseDTO;
 import com.cognizant.hams.dto.response.PatientResponseDTO;
 import com.cognizant.hams.dto.response.UserResponseDTO;
 import com.cognizant.hams.entity.Doctor;
-import com.cognizant.hams.service.AuthService;
+import com.cognizant.hams.service.impl.AuthServiceImpl;
 import com.cognizant.hams.service.DoctorService;
 import com.cognizant.hams.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final AuthService authService;
+    private final AuthServiceImpl authService;
     private final PatientService patientService;
     private final DoctorService doctorService;
 
