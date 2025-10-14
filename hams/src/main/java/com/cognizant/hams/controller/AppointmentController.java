@@ -20,9 +20,6 @@ import java.util.List;
 @RequestMapping("/api")
 public class AppointmentController {
 
-    private final PatientService patientService;
-    private final DoctorService doctorService;
-    private final NotificationService notificationService;
     private final AppointmentService appointmentService;
 
     @PostMapping("/patients/appointments")

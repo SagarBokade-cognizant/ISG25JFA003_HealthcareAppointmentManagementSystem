@@ -1,5 +1,6 @@
 package com.cognizant.hams.service.impl;
 
+import com.cognizant.hams.config.RoleConstants;
 import com.cognizant.hams.dto.request.AdminUserRequestDTO;
 import com.cognizant.hams.dto.request.AuthRequest;
 import com.cognizant.hams.entity.Doctor;
@@ -17,6 +18,7 @@ import com.cognizant.hams.security.JwtTokenUtil;
 import com.cognizant.hams.service.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -84,34 +86,35 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     @Override
-    public Doctor createPrivilegedUser(AdminUserRequestDTO doctorDTO)
-    {
-        Optional<User> existingUser = userRepository.findByUsername(doctorDTO.getUsername());
-        if (existingUser.isPresent()) {
-            throw new UserAlreadyExistsException("User with this username already exists.");
+    // Ensures both User and Doctor are created atomically
+    public Doctor createPrivilegedUser(AdminUserRequestDTO request) {
+        // 1. Check if the username already exists
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new APIException(HttpStatus.BAD_REQUEST, "Username '" + request.getUsername() + "' is already taken.");
         }
 
-        Role role = roleRepository.findByName(doctorDTO.getRoleName().toUpperCase())
-                .orElseThrow(() -> new RuntimeException("Role '" + doctorDTO.getRoleName() + "' not found."));
+        // 2. Fetch the 'DOCTOR' role
+        Role doctorRole = roleRepository.findByName(RoleConstants.ROLE_DOCTOR)
+                .orElseThrow(() -> new APIException(HttpStatus.INTERNAL_SERVER_ERROR, "Required role DOCTOR not found in database."));
 
-        User newUser = new User();
+        // 3. Create and persist the User entity
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(doctorRole);
+        User savedUser = userRepository.save(user);
 
-        newUser.setUsername(doctorDTO.getUsername());
-        newUser.setPassword(doctorDTO.getPassword());
-        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
-        newUser.setRole(role);
-        User savedUser=userRepository.save(newUser);
+        // 4. Create and persist the Doctor entity linked to the new User
+        Doctor doctor = new Doctor();
+        doctor.setUser(savedUser); // Link the new User to the Doctor profile
+        doctor.setDoctorName(request.getDoctorName());
+        doctor.setSpecialization(request.getSpecialization());
+        doctor.setQualification(request.getQualification());
+        doctor.setClinicAddress(request.getClinicAddress());
+        doctor.setYearOfExperience(request.getYearOfExperience());
+        doctor.setContactNumber(request.getContactNumber());
+        doctor.setEmail(request.getEmail());
 
-        Doctor doctor=new Doctor();
-        doctor.setUser(savedUser);
-        doctor.setContactNumber(doctorDTO.getContactNumber());
-        doctor.setEmail(doctorDTO.getEmail());
-        doctor.setDoctorName(doctorDTO.getDoctorName());
-        doctor.setQualification(doctorDTO.getQualification());
-        doctor.setClinicAddress(doctorDTO.getClinicAddress());
-        doctor.setYearOfExperience(doctorDTO.getYearOfExperience());
-        doctor.setSpecialization(doctorDTO.getSpecialization());
-        doctorRepository.save(doctor);
-        return doctor;
+        return doctorRepository.save(doctor);
     }
 }

@@ -2,23 +2,23 @@ package com.cognizant.hams.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "prescriptions")
 @Data
 public class Prescription {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long prescriptionId;
 
-    @ManyToOne
-    @JoinColumn(name = "recordId")
+    private String medicationName;
+    private String dosage;
+    private String instructions;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "record_id")
     private MedicalRecord medicalRecord;
 
-    @ManyToOne
-    @JoinColumn(name = "doctorId")
-    private Doctor doctor;
-
-    private Date onsetDate;
-    private String instructions;
+    private LocalDateTime prescribedAt = LocalDateTime.now();
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "medical_records")
@@ -24,6 +25,9 @@ public class MedicalRecord {
     private String reason;
     private String diagnosis;
     private String notes;
+
+    @OneToMany(mappedBy = "medicalRecord", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Prescription> prescriptions;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }

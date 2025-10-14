@@ -16,6 +16,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration; // New Import
+import org.springframework.web.cors.CorsConfigurationSource; // New Import
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource; // New Import
+
+import java.util.Arrays; // New Import
+import java.util.List; // New Import
 
 @Configuration
 @EnableWebSecurity
@@ -48,15 +54,43 @@ public class WebSecurityConfig {
         return authProvider;
     }
 
+    // New CORS Configuration Bean
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Allow requests from your Angular development port
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // Allow cookies/auth headers
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Apply to all paths
+        return source;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // 1. ENABLE CORS using the bean defined above
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // 2. Disable CSRF
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Only admins can access these endpoints
-                        .requestMatchers("/api/doctors/**").hasRole("DOCTOR") // Only admins can access these endpoints
-                        .requestMatchers("/api/patients/**").hasRole("PATIENT")
+                        // PUBLIC ENDPOINTS
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api/patients/**"
+                        ).permitAll()
+
+                        // ROLE-BASED ENDPOINTS (requires JWT token)
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/doctors/**").hasRole("DOCTOR")
+
+                        // SECURED BY DEFAULT
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
