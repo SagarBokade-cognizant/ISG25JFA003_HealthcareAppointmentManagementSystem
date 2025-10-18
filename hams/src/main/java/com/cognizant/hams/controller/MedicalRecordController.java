@@ -13,22 +13,23 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/api/medical-records")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class MedicalRecordController {
     private final MedicalRecordService medicalRecordService;
-    @PostMapping
+    @PostMapping("/doctors/me/medical-records")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<MedicalRecordResponseDTO> createRecord(@Valid @RequestBody MedicalRecordDTO dto) {
         MedicalRecordResponseDTO saved = medicalRecordService.createRecord(dto);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
-    @GetMapping("/patient")
+    @GetMapping("/patients/me/medical-records")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<List<MedicalRecordResponseDTO>> getRecordsForPatient() {
         return ResponseEntity.ok(medicalRecordService.getRecordsForPatient());
     }
-    @GetMapping("/doctor/{doctorId}")
+
+    @GetMapping("/doctors/{doctorId}/medical-records")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<List<MedicalRecordResponseDTO>> getRecordsForDoctor(@PathVariable Long doctorId) {
         return ResponseEntity.ok(medicalRecordService.getRecordsForDoctor(doctorId));

@@ -20,22 +20,22 @@ public class DoctorAvailabilityController {
 
     private final DoctorAvailabilityService doctorAvailabilityService;
 
-    @PostMapping("/doctors/availability")
+    @PostMapping("/doctors/me/availability")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<DoctorAvailabilityResponseDTO> addAvailability(@Valid @RequestBody DoctorAvailabilityDTO slotDto) {
         DoctorAvailabilityResponseDTO savedSlot = doctorAvailabilityService.addAvailability(slotDto);
         return new ResponseEntity<>(savedSlot, HttpStatus.CREATED);
     }
 
-    @GetMapping("/doctors/availability")
+    @GetMapping("/doctors/me/availability")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<List<DoctorAvailabilityResponseDTO>> getDoctorAvailability() {
         List<DoctorAvailabilityResponseDTO> availability = doctorAvailabilityService.getDoctorAvailability();
         return new ResponseEntity<>(availability, HttpStatus.OK);
     }
 
-    @PutMapping("/admin/{doctorId}/availability/{availabilityId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/doctors/{doctorId}/availability/{availabilityId}")
+    @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<DoctorAvailabilityResponseDTO> updateAvailabilitySlot(@PathVariable("doctorId") Long doctorId, @PathVariable("availabilityId") Long availabilityId, @RequestBody  DoctorAvailabilityDTO doctorAvailabilityDTO ) {
         DoctorAvailabilityResponseDTO doctorResponseDTO = doctorAvailabilityService.updateAvailabilitySlot(doctorId, availabilityId,doctorAvailabilityDTO);
         return new ResponseEntity<>(doctorResponseDTO,HttpStatus.OK);
@@ -47,10 +47,9 @@ public class DoctorAvailabilityController {
         return new ResponseEntity<>(doctorAndAvailabilityResponseDTOList, HttpStatus.OK);
     }
 
-    @GetMapping("/patients/searchDoctor")
+    @GetMapping("/patients/search-doctors")
     public ResponseEntity<List<DoctorAndAvailabilityResponseDTO>> searchDoctorByName(@RequestParam("name") String doctorName){
         List<DoctorAndAvailabilityResponseDTO> doctorAndAvailabilityResponseDTOList = doctorAvailabilityService.searchDoctorByName(doctorName);
         return new ResponseEntity<>(doctorAndAvailabilityResponseDTOList, HttpStatus.OK);
     }
-
 }

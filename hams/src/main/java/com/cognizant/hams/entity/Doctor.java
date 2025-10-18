@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,4 +53,6 @@ public class Doctor {
     @NotBlank(message = "Clinic address is required")
     @Size(max = 255, message = "Address cannot exceed 255 characters")
     private String clinicAddress;
+
+    private String licenseNumber;
 }

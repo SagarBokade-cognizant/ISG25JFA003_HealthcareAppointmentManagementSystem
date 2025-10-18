@@ -9,17 +9,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/notifications")
+@RequestMapping("/api")
 public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @GetMapping("/patients/notification")
+    @GetMapping("/patients/me/notifications")
     public ResponseEntity<List<NotificationResponseDTO>> getPatientNotifications(){
         return ResponseEntity.ok(notificationService.getNotificationForPatient());
     }
 
-    @GetMapping("/doctors/notification")
+    @GetMapping("/doctors/me/notifications")
     public ResponseEntity<List<NotificationResponseDTO>> getNotificationsForDoctor() {
         List<NotificationResponseDTO> notifications = notificationService.getNotificationForDoctor();
         return ResponseEntity.ok(notifications);

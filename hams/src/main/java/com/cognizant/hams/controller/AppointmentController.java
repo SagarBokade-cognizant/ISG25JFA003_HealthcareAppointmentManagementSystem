@@ -22,7 +22,7 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
-    @PostMapping("/patients/appointments")
+    @PostMapping("/patients/me/appointments")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<AppointmentResponseDTO> bookAppointment(
             @Valid @RequestBody AppointmentDTO appointmentDTO) {
@@ -30,7 +30,7 @@ public class AppointmentController {
         return new ResponseEntity<>(newAppointment, HttpStatus.CREATED);
     }
 
-    @GetMapping("/patients/status")
+    @GetMapping("/patients/me/status")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<List<AppointmentResponseDTO>> getAppointmentsForPatient() {
         List<AppointmentResponseDTO> appointments = appointmentService.getAppointmentsForPatient();
@@ -44,7 +44,7 @@ public class AppointmentController {
         return ResponseEntity.ok(appointment);
     }
 
-    @PutMapping("/appointments/{appointmentId}")
+    @PatchMapping("patients/me/appointments/{appointmentId}")
     public ResponseEntity<AppointmentResponseDTO> updateAppointment(
             @PathVariable("appointmentId") Long appointmentId,
             @Valid @RequestBody AppointmentDTO appointmentUpdateDTO) {
@@ -59,14 +59,14 @@ public class AppointmentController {
         return ResponseEntity.ok(canceledAppointment);
     }
 
-    @PostMapping("/doctors/appointments/{appointmentId}/confirm")
+    @PostMapping("/doctors/me/appointments/{appointmentId}/confirm")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<AppointmentResponseDTO> confirmAppointment(@PathVariable Long appointmentId){
         AppointmentResponseDTO responseDTO = appointmentService.confirmAppointment(appointmentId);
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PostMapping("/doctors/appointments/{appointmentId}/reject")
+    @PostMapping("/doctors/me/appointments/{appointmentId}/reject")
     public ResponseEntity<AppointmentResponseDTO> rejectAppointment(@PathVariable Long appointmentId,
                                                                     @RequestParam(value = "reason", required = false) String reason){
         AppointmentResponseDTO responseDTO = appointmentService.rejectAppointment(appointmentId, reason);
