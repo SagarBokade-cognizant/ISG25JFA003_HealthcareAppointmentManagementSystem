@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Data
@@ -19,5 +20,6 @@ public class MedicalRecordResponseDTO {
     private String reason;
     private String diagnosis;
     private String notes;
+    private List<PrescriptionResponseDTO> prescriptions;
     private LocalDateTime createdAt;
 }

@@ -3,13 +3,12 @@ package com.cognizant.hams.controller;
 import com.cognizant.hams.dto.request.AdminUserRequestDTO;
 import com.cognizant.hams.dto.request.DoctorDTO;
 import com.cognizant.hams.dto.response.DoctorResponseDTO;
-import com.cognizant.hams.dto.response.PatientResponseDTO;
-import com.cognizant.hams.dto.response.UserResponseDTO;
 import com.cognizant.hams.entity.Doctor;
 import com.cognizant.hams.service.AuthService;
+
 import com.cognizant.hams.service.DoctorService;
-import com.cognizant.hams.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,51 +20,42 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AuthService authService;
-    private final PatientService patientService;
+    private final ModelMapper modelMapper;
     private final DoctorService doctorService;
 
 
-    // Only users with the ADMIN role can access this endpoint
-    // AdminController.java
-
+    /**
+     * Creates a new Doctor user (privileged user) based on the request.
+     * Requires the ADMIN role.
+     * @param request The DTO containing user credentials and doctor profile details.
+     * @return A ResponseEntity containing the created doctor's profile details.
+     */
     @PostMapping("/create-user")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponseDTO> createPrivilegedUser(@RequestBody AdminUserRequestDTO request) {
-        Doctor createdUser = authService.createPrivilegedUser(request);
-        UserResponseDTO responseDTO = new UserResponseDTO();
-        responseDTO.setDoctorId(createdUser.getDoctorId());
-        responseDTO.setDoctorName(createdUser.getDoctorName());
-        responseDTO.setEmail(createdUser.getEmail());
-        responseDTO.setClinicAddress(createdUser.getClinicAddress());
-        responseDTO.setQualification(createdUser.getQualification());
-        responseDTO.setSpecialization(createdUser.getSpecialization());
-        responseDTO.setContactNumber(createdUser.getContactNumber());
-        responseDTO.setYearOfExperience(createdUser.getYearOfExperience());
+    public ResponseEntity<DoctorResponseDTO> createPrivilegedUser(@RequestBody AdminUserRequestDTO request) {
+        Doctor createdDoctor = authService.createPrivilegedUser(request);
 
+        DoctorResponseDTO responseDTO = modelMapper.map(createdDoctor, DoctorResponseDTO.class);
 
-        return ResponseEntity.ok(responseDTO);
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/patients/{patientId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PatientResponseDTO> deletePatient(@PathVariable("patientId") Long patientId){
-        PatientResponseDTO deletePatientDTO = patientService.deletePatient(patientId);
-        return new ResponseEntity<>(deletePatientDTO, HttpStatus.OK);
+    @PutMapping("/doctors/{doctorId}")
+    @PreAuthorize("/hasRole('ADMIN')")
+    public ResponseEntity<DoctorResponseDTO> updateDoctor(
+            @PathVariable Long doctorId,
+            @RequestBody DoctorDTO doctorDTO) {
+
+        DoctorResponseDTO updatedDoctor = doctorService.updateDoctor(doctorId, doctorDTO);
+        return new ResponseEntity<>(updatedDoctor, HttpStatus.OK);
     }
 
-    @PatchMapping("/doctors/{doctorId}")
+    @DeleteMapping("/{doctorId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DoctorResponseDTO> updateDoctor(@PathVariable("doctorId") Long doctorId, @RequestBody DoctorDTO doctorDTO){
-        DoctorResponseDTO updateDoctor = doctorService.updateDoctor(doctorId,doctorDTO);
-        return new ResponseEntity<>(updateDoctor,HttpStatus.OK);
-    }
+    public ResponseEntity<DoctorResponseDTO> deleteDoctor(@PathVariable Long doctorId) {
 
-//    ADMIN DELETE METHOD
+        DoctorResponseDTO deletedDoctorDTO = doctorService.deleteDoctor(doctorId);
+        return new ResponseEntity<>(deletedDoctorDTO, HttpStatus.NO_CONTENT);
 
-    @DeleteMapping("/doctors/{doctorId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<DoctorResponseDTO> deleteDoctor(@PathVariable("doctorId") Long doctorId){
-        DoctorResponseDTO deleteDoctor = doctorService.deleteDoctor(doctorId);
-        return new ResponseEntity<>(deleteDoctor, HttpStatus.OK);
     }
 }

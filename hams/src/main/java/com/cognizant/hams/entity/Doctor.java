@@ -5,6 +5,10 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "doctors")
 @Data
@@ -17,6 +21,9 @@ public class Doctor {
     @OneToOne
     @JoinColumn(name = "userId")
     private User user;
+
+    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Appointment> appointments = new HashSet<>();
 
     @NotBlank(message = "Doctor name is required")
     @Size(min = 3, max = 25, message = "Name must be between 3 and 25 characters")
@@ -46,4 +53,6 @@ public class Doctor {
     @NotBlank(message = "Clinic address is required")
     @Size(max = 255, message = "Address cannot exceed 255 characters")
     private String clinicAddress;
+
+    private String licenseNumber;
 }

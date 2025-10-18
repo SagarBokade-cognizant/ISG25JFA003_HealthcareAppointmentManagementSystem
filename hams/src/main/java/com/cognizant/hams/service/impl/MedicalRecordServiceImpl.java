@@ -2,12 +2,14 @@ package com.cognizant.hams.service.impl;
 
 import com.cognizant.hams.dto.request.MedicalRecordDTO;
 import com.cognizant.hams.dto.response.MedicalRecordResponseDTO;
+import com.cognizant.hams.dto.response.PrescriptionResponseDTO;
 import com.cognizant.hams.service.MedicalRecordService;
 
 import com.cognizant.hams.entity.Appointment;
 import com.cognizant.hams.entity.Doctor;
 import com.cognizant.hams.entity.MedicalRecord;
 import com.cognizant.hams.entity.Patient;
+import com.cognizant.hams.entity.Prescription;
 import com.cognizant.hams.exception.APIException;
 import com.cognizant.hams.exception.ResourceNotFoundException;
 import com.cognizant.hams.repository.AppointmentRepository;
@@ -35,34 +37,38 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     @Override
     public MedicalRecordResponseDTO createRecord(MedicalRecordDTO dto) {
+        // 1. Validate Appointment and Entities
         Appointment appointment = appointmentRepository.findById(dto.getAppointmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "Id", dto.getAppointmentId()));
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Patient", "Id", dto.getPatientId()));
         Doctor doctor = doctorRepository.findById(dto.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor", "Id", dto.getDoctorId()));
+
         if (!appointment.getPatient().getPatientId().equals(patient.getPatientId()) ||
                 !appointment.getDoctor().getDoctorId().equals(doctor.getDoctorId())) {
             throw new APIException("Appointment does not belong to provided patient/doctor");
         }
+
         MedicalRecord record = new MedicalRecord();
         record.setPatient(patient);
         record.setDoctor(doctor);
         record.setReason(dto.getReason());
         record.setDiagnosis(dto.getDiagnosis());
         record.setNotes(dto.getNotes());
+
+        if (dto.getPrescriptions() != null && !dto.getPrescriptions().isEmpty()) {
+            List<Prescription> prescriptions = dto.getPrescriptions().stream()
+                    .map(pDto -> {
+                        Prescription p = modelMapper.map(pDto, Prescription.class);
+                        p.setMedicalRecord(record); // Set the back reference
+                        return p;
+                    }).collect(Collectors.toList());
+            record.setPrescriptions(prescriptions);
+        }
+
         MedicalRecord saved = medicalRecordRepository.save(record);
-        MedicalRecordResponseDTO resp = new MedicalRecordResponseDTO();
-        resp.setRecordId(saved.getRecordId());
-        resp.setPatientId(patient.getPatientId());
-        resp.setDoctorId(doctor.getDoctorId());
-        resp.setPatientName(patient.getName());
-        resp.setDoctorName(doctor.getDoctorName());
-        resp.setReason(saved.getReason());
-        resp.setDiagnosis(saved.getDiagnosis());
-        resp.setNotes(saved.getNotes());
-        resp.setCreatedAt(saved.getCreatedAt());
-        return resp;
+        return toDto(saved);
     }
 
     @Override
@@ -79,6 +85,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
+
     @Override
     public List<MedicalRecordResponseDTO> getRecordsForDoctor(Long doctorId) {
         if (!doctorRepository.existsById(doctorId)) {
@@ -99,8 +106,13 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         resp.setDiagnosis(record.getDiagnosis());
         resp.setNotes(record.getNotes());
         resp.setCreatedAt(record.getCreatedAt());
+
+        if (record.getPrescriptions() != null) {
+            List<PrescriptionResponseDTO> prescriptionDTOs = record.getPrescriptions().stream()
+                    .map(p -> modelMapper.map(p, PrescriptionResponseDTO.class))
+                    .collect(Collectors.toList());
+            resp.setPrescriptions(prescriptionDTOs);
+        }
         return resp;
     }
 }
-
-

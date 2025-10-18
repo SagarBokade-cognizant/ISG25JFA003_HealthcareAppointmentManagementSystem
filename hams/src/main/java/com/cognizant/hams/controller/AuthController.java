@@ -4,7 +4,8 @@ import com.cognizant.hams.dto.request.AuthRequest;
 import com.cognizant.hams.dto.response.AuthResponse;
 import com.cognizant.hams.dto.response.PatientResponseDTO;
 import com.cognizant.hams.entity.Patient;
-import com.cognizant.hams.service.AuthService;
+import com.cognizant.hams.service.impl.AuthServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,13 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthServiceImpl authService;
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthRequest authenticationRequest) {
