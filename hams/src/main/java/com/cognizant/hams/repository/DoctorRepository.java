@@ -6,8 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +47,11 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
             "join doctors d\n" +
             "on a.doctor_id = d.doctor_id\n" +
             "where a.appointment_id = :appointmentId;", nativeQuery = true)
-    boolean existsByEmailOrContactNumber(String email, String contactNumber);
 
     Optional<Object> findByUser_Username(String currentUsername);
+
+    @Query("SELECT d FROM Doctor d WHERE d.createdAt >= :startDate ORDER BY d.createdAt DESC")
+    List<Doctor> findRecentDoctors(@Param("startDate") LocalDateTime startDate);
+
+    long count();
 }

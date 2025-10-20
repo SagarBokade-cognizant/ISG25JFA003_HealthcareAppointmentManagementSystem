@@ -55,4 +55,19 @@ public class Doctor {
     private String clinicAddress;
 
     private String licenseNumber;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    private DoctorStatus status = DoctorStatus.ACTIVE;
+
+    @PrePersist
+    protected void onCreate(){
+        createdAt = LocalDateTime.now();
+    }
+
+    public enum DoctorStatus{
+        ACTIVE, INACTIVE, PENDING;
+    }
 }
