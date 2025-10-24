@@ -5,8 +5,10 @@ import com.cognizant.hams.dto.response.DoctorResponseDTO;
 import com.cognizant.hams.entity.Doctor;
 import com.cognizant.hams.exception.APIException;
 import com.cognizant.hams.exception.ResourceNotFoundException;
+import com.cognizant.hams.repository.AppointmentRepository;
 import com.cognizant.hams.repository.DoctorRepository;
 import com.cognizant.hams.service.DoctorService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final ModelMapper modelMapper;
+    private final AppointmentRepository appointmentRepository;
 
     // Get Doctor By I'd:
     @Override
@@ -51,10 +54,10 @@ public class DoctorServiceImpl implements DoctorService {
     // Update Doctor
 
     @Override
+    @Transactional
     public DoctorResponseDTO updateDoctor(Long doctorId, DoctorDTO doctorDTO) {
         Doctor existingDoctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor", "doctorId", doctorId));
-
         modelMapper.map(doctorDTO, existingDoctor);
         doctorRepository.save(existingDoctor);
         return modelMapper.map(existingDoctor, DoctorResponseDTO.class);
@@ -62,6 +65,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     // Delete Doctor
     @Override
+    @Transactional
     public DoctorResponseDTO deleteDoctor(Long doctorId){
         Doctor existingDoctor = doctorRepository.findByDoctorId(doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor","doctorId", doctorId));

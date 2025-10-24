@@ -16,7 +16,14 @@ public interface DoctorAvailabilityService {
 
     // Add Availability
     List<DoctorAvailabilityResponseDTO> getDoctorAvailability();
-    DoctorAvailabilityResponseDTO updateAvailabilitySlot(Long doctorId,Long availabilityId, DoctorAvailabilityDTO doctorAvailabilityDTO);
+
+    @Transactional
+    DoctorAvailabilityResponseDTO updateAvailability(Long availabilityId, DoctorAvailabilityDTO doctorAvailabilityDTO);
+
+    @Transactional
+    void deleteAvailability(Long availabilityId);
+
+    DoctorAvailabilityResponseDTO updateAvailabilitySlot(Long doctorId, Long availabilityId, DoctorAvailabilityDTO doctorAvailabilityDTO);
 
     List<DoctorAndAvailabilityResponseDTO> getAvailableDoctor(String doctorName);
 

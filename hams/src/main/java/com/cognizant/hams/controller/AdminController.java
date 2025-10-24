@@ -46,7 +46,7 @@ public class AdminController {
         return new ResponseEntity<>(updatedDoctor, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{doctorId}")
+    @DeleteMapping("/doctors/{doctorId}")
     public ResponseEntity<DoctorResponseDTO> deleteDoctor(@PathVariable Long doctorId) {
 
         DoctorResponseDTO deletedDoctorDTO = doctorService.deleteDoctor(doctorId);

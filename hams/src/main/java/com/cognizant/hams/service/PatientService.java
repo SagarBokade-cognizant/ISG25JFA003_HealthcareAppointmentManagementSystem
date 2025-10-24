@@ -21,6 +21,7 @@ public interface PatientService {
 
     List<DoctorResponseDTO> searchDoctorBySpecialization(String specialization);
 
+    long getTotalPatientCount();
 }
 //    AppointmentResponseDTO bookAppointment(Long patientId, AppointmentDTO appointmentDTO);
 //    AppointmentResponseDTO cancelAppointment(Long appointmentId);

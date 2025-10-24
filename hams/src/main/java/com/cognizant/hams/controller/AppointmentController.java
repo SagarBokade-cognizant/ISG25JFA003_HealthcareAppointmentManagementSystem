@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final PatientService patientService;
 
     @PostMapping("/patients/me/appointments")
     @PreAuthorize("hasRole('PATIENT')")
@@ -36,6 +38,13 @@ public class AppointmentController {
         List<AppointmentResponseDTO> appointments = appointmentService.getAppointmentsForPatient();
         return ResponseEntity.ok(appointments);
     }
+
+//    @GetMapping("/doctors/me/appointments")
+//    @PreAuthorize("hasRole('DOCTOR')")
+//    public ResponseEntity<List<AppointmentResponseDTO>> getDoctorAppointments() {
+//        List<AppointmentResponseDTO> appointments = appointmentService.getAppointmentsForDoctor();
+//        return new ResponseEntity<>(appointments, HttpStatus.OK);
+//    }
 
     @GetMapping("/appointments/{appointmentId}")
     public ResponseEntity<AppointmentResponseDTO> getAppointmentById(
@@ -71,5 +80,45 @@ public class AppointmentController {
                                                                     @RequestParam(value = "reason", required = false) String reason){
         AppointmentResponseDTO responseDTO = appointmentService.rejectAppointment(appointmentId, reason);
         return ResponseEntity.ok(responseDTO);
+    }
+
+
+    @GetMapping("/appointments/today-count")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<Long> getTodayAppointmentCount() {
+        long count = appointmentService.getTodayAppointmentCount();
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/dashboard/patient-count")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<Long> getTotalPatientCount() {
+        long count = patientService.getTotalPatientCount();
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/doctors/dashboard/pending-reviews/count")
+    @PreAuthorize("hasRole('DOCTOR')") // Restrict to logged-in Doctor
+    public ResponseEntity<Long> getPendingReviewsCountForDoctor() {
+        // Get the current doctor's username from the security context
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        long count = appointmentService.getPendingReviewsCountForDoctor(currentUsername);
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/doctors/appointments")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<List<AppointmentResponseDTO>> getAppointmentsForDoctor() {
+        // 🔑 Assumes the service will use SecurityContextHolder to get the doctor's ID
+        List<AppointmentResponseDTO> appointments = appointmentService.getAppointmentsForDoctor();
+        return ResponseEntity.ok(appointments);
+    }
+
+    @GetMapping("/doctors/appointments/today")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<List<AppointmentResponseDTO>> getTodayAppointmentsForDoctor() {
+        List<AppointmentResponseDTO> appointments = appointmentService.getTodayAppointmentsForDoctor();
+        return ResponseEntity.ok(appointments);
     }
 }

@@ -30,18 +30,19 @@ public class DoctorAvailabilityServiceImpl implements DoctorAvailabilityService 
     private final ModelMapper modelMapper;
     private final DoctorAvailabilityRepository doctorAvailabilityRepository;
 
-
-    // Add Availability
-    @Transactional
-    @Override
-    public DoctorAvailabilityResponseDTO addAvailability(DoctorAvailabilityDTO slotDto) {
+    private Doctor getDoctorFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        Doctor loggedInDoctor = (Doctor) doctorRepository.findByUser_Username(currentUsername)
+        return (Doctor) doctorRepository.findByUser_Username(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor", "username", currentUsername));
+    }
 
-        // Check for a duplicate availability slot before saving
+    @Transactional
+    @Override
+    public DoctorAvailabilityResponseDTO addAvailability(DoctorAvailabilityDTO slotDto) {
+        Doctor loggedInDoctor = getDoctorFromSecurityContext();
+
         if (doctorAvailabilityRepository.existsByDoctorDoctorIdAndAvailableDateAndStartTime(
                 loggedInDoctor.getDoctorId(), slotDto.getAvailableDate(), slotDto.getStartTime())) {
             throw new APIException("The specified time slot is already registered for this doctor.");
@@ -59,15 +60,9 @@ public class DoctorAvailabilityServiceImpl implements DoctorAvailabilityService 
         }
     }
 
-    // Get Availability
-
     @Override
     public List<DoctorAvailabilityResponseDTO> getDoctorAvailability() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-
-        Doctor loggedInDoctor = (Doctor) doctorRepository.findByUser_Username(currentUsername)
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor", "username", currentUsername));
+        Doctor loggedInDoctor = getDoctorFromSecurityContext();
 
         List<DoctorAvailability> availabilities = doctorAvailabilityRepository.findByDoctorDoctorId(loggedInDoctor.getDoctorId());
 
@@ -76,17 +71,59 @@ public class DoctorAvailabilityServiceImpl implements DoctorAvailabilityService 
                 .collect(Collectors.toList());
     }
 
-    // Delete Availability Slot
-
-    @Override
     @Transactional
+    @Override
+    public DoctorAvailabilityResponseDTO updateAvailability(Long availabilityId, DoctorAvailabilityDTO doctorAvailabilityDTO) {
+        Doctor loggedInDoctor = getDoctorFromSecurityContext();
+
+        DoctorAvailability existingAvailability = doctorAvailabilityRepository.findById(availabilityId)
+                .orElseThrow(() -> new ResourceNotFoundException("DoctorAvailability", "availabilityId", availabilityId));
+
+        if (!existingAvailability.getDoctor().getDoctorId().equals(loggedInDoctor.getDoctorId())) {
+            throw new AccessDeniedException("Access denied: You can only update your own availability slots.");
+        }
+
+        // Check for duplicate availability slot only if date/time is actually changed
+        if (!existingAvailability.getAvailableDate().equals(doctorAvailabilityDTO.getAvailableDate()) ||
+                !existingAvailability.getStartTime().equals(doctorAvailabilityDTO.getStartTime())) {
+            if (doctorAvailabilityRepository.existsByDoctorDoctorIdAndAvailableDateAndStartTime(
+                    loggedInDoctor.getDoctorId(), doctorAvailabilityDTO.getAvailableDate(), doctorAvailabilityDTO.getStartTime())) {
+                throw new APIException("The specified time slot is already registered for this doctor on that date.");
+            }
+        }
+
+        modelMapper.map(doctorAvailabilityDTO, existingAvailability);
+        existingAvailability.setAvailabilityId(availabilityId);
+
+        DoctorAvailability updatedAvailability = doctorAvailabilityRepository.save(existingAvailability);
+
+        return modelMapper.map(updatedAvailability, DoctorAvailabilityResponseDTO.class);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAvailability(Long availabilityId) {
+        Doctor loggedInDoctor = getDoctorFromSecurityContext();
+
+        DoctorAvailability existingAvailability = doctorAvailabilityRepository.findById(availabilityId)
+                .orElseThrow(() -> new ResourceNotFoundException("DoctorAvailability", "availabilityId", availabilityId));
+
+        if (!existingAvailability.getDoctor().getDoctorId().equals(loggedInDoctor.getDoctorId())) {
+            throw new AccessDeniedException("Access denied: You can only delete your own availability slots.");
+        }
+
+        doctorAvailabilityRepository.delete(existingAvailability);
+    }
+
+    @Transactional
+    @Override
     public DoctorAvailabilityResponseDTO updateAvailabilitySlot(Long doctorId, Long availabilityId, DoctorAvailabilityDTO doctorAvailabilityDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isAdmin) {
-            throw new AccessDeniedException("Only an ADMIN can update doctor details.");
+            throw new AccessDeniedException("Only an ADMIN can use this specific update endpoint.");
         }
 
         DoctorAvailability existingAvailability = doctorAvailabilityRepository.findById(availabilityId)
@@ -107,7 +144,6 @@ public class DoctorAvailabilityServiceImpl implements DoctorAvailabilityService 
     public List<DoctorAndAvailabilityResponseDTO> getAvailableDoctor(String doctorName){
         return doctorRepository.findByAvailableDoctorNameAndAvailability(doctorName);
     }
-
 
     @Override
     public List<DoctorAndAvailabilityResponseDTO> searchDoctorByName(String doctorName){

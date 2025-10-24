@@ -11,4 +11,9 @@ public interface NotificationService {
     List<NotificationResponseDTO> getNotificationForDoctor();
     List<NotificationResponseDTO> getNotificationForPatient();
     void markAsRead(Long notificationId);
+
+//    void markAllAsRead(String currentUsername);
+    void markAllAsRead();
+
+    long getUnreadNotificationCount();
 }
