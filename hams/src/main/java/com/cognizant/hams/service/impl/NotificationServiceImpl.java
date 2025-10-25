@@ -104,6 +104,60 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    @Override
+    @Transactional // Ensures the update is committed correctly
+    public void markAllAsRead() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Determine user role and recipient ID
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DOCTOR"))) {
+            // User is a DOCTOR
+            Doctor doctor = doctorRepository.findByUser_Username(currentUsername)
+                    .orElseThrow(() -> new ResourceNotFoundException("Doctor", "username", currentUsername));
+
+            notificationRepository.markAllUnreadForDoctor(doctor.getDoctorId());
+
+        } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PATIENT"))) {
+            // User is a PATIENT
+            Patient patient = (Patient) patientRepository.findByUser_Username(currentUsername)
+                    .orElseThrow(() -> new ResourceNotFoundException("Patient", "username", currentUsername));
+
+            notificationRepository.markAllUnreadForPatient(patient.getPatientId());
+        }
+
+        // Note: For simplicity, assuming only Patient and Doctor roles need notifications marked as read.
+    }
+
+    @Override
+    public long getUnreadNotificationCount() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DOCTOR"))) {
+            // User is a DOCTOR
+            Doctor doctor = doctorRepository.findByUser_Username(currentUsername)
+                    .orElseThrow(() -> new ResourceNotFoundException("Doctor", "username", currentUsername));
+
+            // Calls the new repository method for the Doctor
+            return notificationRepository.countByRecipientTypeAndRecipientIdAndReadFalse(
+                    Notification.RecipientType.DOCTOR, doctor.getDoctorId());
+
+        } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PATIENT"))) {
+            // User is a PATIENT
+            Patient patient = (Patient) patientRepository.findByUser_Username(currentUsername)
+                    .orElseThrow(() -> new ResourceNotFoundException("Patient", "username", currentUsername));
+
+            // Calls the new repository method for the Patient
+            return notificationRepository.countByRecipientTypeAndRecipientIdAndReadFalse(
+                    Notification.RecipientType.PATIENT, patient.getPatientId());
+        }
+
+        // Return 0 if the user is authenticated but doesn't have a recognized notification role
+        return 0L;
+    }
+
+
     private NotificationResponseDTO mapToDTO(Notification notification) {
         NotificationResponseDTO dto = modelMapper.map(notification, NotificationResponseDTO.class);
         if (notification.getAppointment() != null) {

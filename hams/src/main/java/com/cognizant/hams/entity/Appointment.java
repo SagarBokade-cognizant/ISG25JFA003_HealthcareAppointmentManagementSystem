@@ -1,5 +1,6 @@
 package com.cognizant.hams.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +28,8 @@ public class Appointment {
     private Patient patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id" , nullable = false)
+    @JoinColumn(name = "doctor_id")
+    @JsonBackReference
     private Doctor doctor;
 
     @Column(name = "appointment_date", nullable = false)
